@@ -23,7 +23,7 @@ INDEX_HTML_PATH = PROJECT_ROOT / "goodpaper_mvp" / "static" / "index.html"
 
 
 class GoodPaperHandler(BaseHTTPRequestHandler):
-    server_version = "GoodPaper_Beta/0.1"
+    server_version = "GoodPaper/0.1"
 
     def do_GET(self) -> None:
         try:
@@ -321,5 +321,5 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
 
 def run_server(host: str = "127.0.0.1", port: int = 8765) -> None:
     server = ThreadingHTTPServer((host, port), GoodPaperHandler)
-    print(f"GoodPaper_Beta listening at http://{host}:{port}")
+    print(f"GoodPaper listening at http://{host}:{port}")
     server.serve_forever()

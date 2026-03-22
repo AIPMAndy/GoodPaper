@@ -1,4 +1,4 @@
-"""GoodPaper Mac MVP."""
+"""GoodPaper open-source paper formatting helper."""
 
 __all__ = ["__version__"]
 

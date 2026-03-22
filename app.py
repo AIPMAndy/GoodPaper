@@ -16,7 +16,7 @@ from goodpaper_mvp.templates import list_template_packages, resolve_template_con
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="GoodPaper_Beta")
+    parser = argparse.ArgumentParser(description="GoodPaper")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     serve_parser = subparsers.add_parser("serve", help="Run the local web app")

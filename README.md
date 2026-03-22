@@ -1,58 +1,76 @@
 # GoodPaper
 
-GoodPaper 是一个面向论文作者的开源排版辅助工具。
+**Open-source paper formatting helper for `.docx` / `.docm` manuscripts.**
 
-它解决的不是“帮你写论文”，而是更具体的一件事：
-**拿着目标模板，对现有稿件做格式检查、初步排版修复、批量出报告。**
+GoodPaper is designed for a very practical job:
 
-当前项目更适合这些场景：
-- 会议 / 期刊投稿前的格式自查
-- 学生论文或实验室稿件的模板合规检查
-- 教师、助教、编辑做批量格式巡检
-- 基于已有出版社模板做第一轮自动排版
+> **check whether a manuscript matches a target template, generate a first-pass formatting fix, and export structured reports for manual cleanup.**
 
-## 当前能力
+It is **not** an AI writing tool.
+It is a **paper formatting + compliance helper** for authors, labs, teaching staff, and editors.
 
-- 上传 `.docx` / `.docm` 模板做检查
-- 检查论文稿件与模板语义样式是否匹配
-- 自动识别并处理这些常见结构：
-  - title
-  - author
-  - affiliation / address
-  - abstract
-  - keywords
-  - heading level 1 / 2
-  - first paragraph after heading
-  - table caption
-  - figure caption
-  - displayed equation
-  - references heading and reference items
-- 生成基础自动排版结果（`.docx`）
-- 批量检查并导出报告（JSON / CSV / ZIP）
-- 本地 Web UI
-- CLI
+## What GoodPaper can do
 
-## 开源版说明
+- Check a manuscript against a target Word template
+- Detect common paper structure and style mismatches
+- Generate a first-pass formatted `.docx`
+- Run **check → format → re-check** in one step
+- Batch-check multiple papers and export reports
+- Work through both **CLI** and **local Web UI**
 
-这个仓库现在默认是 **开源可用版**：
-- 默认不强制激活
-- 不内置商业 secret
-- 不提交本地设备、license、运行产物
-- 不内置第三方模板文件
+## Current rule coverage
 
-也就是说：
-**别人 clone 下来后，可以直接运行；如果要用具体模板，需要自己上传模板文件。**
+GoodPaper currently covers these common academic structure elements:
 
-## 为什么不内置模板文件？
+- title
+- author
+- affiliation / address
+- abstract
+- keywords
+- heading level 1 / 2
+- first paragraph after heading
+- table caption
+- figure caption
+- displayed equation
+- references heading and reference items
 
-很多出版社 / 会议模板（例如某些 `.docm` / `.dotm` 模板）本身可能有分发限制。
-为了避免版权和再分发风险，开源仓库默认不直接附带第三方模板。
+## Typical use cases
 
-你可以用两种方式使用 GoodPaper：
-1. **直接上传你自己的模板文件**（推荐）
-2. 在 `template_packages/` 下面自己配置模板包
+GoodPaper is useful when you want to:
 
-## 安装
+- check a conference / journal submission before upload
+- help students align papers to a required template
+- batch-review a folder of manuscripts in a lab or course
+- do the **first formatting pass automatically**, then finish the remaining edits manually
+
+## Open-source mode
+
+This repository is prepared as an **open-source usable version**.
+
+That means:
+
+- no mandatory activation by default
+- no committed commercial secret
+- no committed local runtime artifacts
+- no bundled third-party template file by default
+
+So people can clone the repo and run it directly.
+If they want to format against a real publisher / conference template, they should **upload their own template file** or configure a local template package.
+
+## Why the repo does not bundle publisher templates
+
+Many publisher / conference templates (`.docm`, `.dotm`, etc.) may have redistribution restrictions.
+
+To avoid copyright and redistribution risk, this open-source repo does **not** rely on shipping third-party templates publicly.
+
+Recommended usage:
+
+1. **upload your own template file** in Web UI or CLI
+2. or define your own package under `template_packages/`
+
+## Quick start
+
+### 1) Install
 
 ```bash
 python3 -m venv .venv
@@ -60,35 +78,45 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## 启动 Web UI
+### 2) Start the Web UI
 
 ```bash
 python3 app.py serve
 ```
 
-打开：
+Then open:
 
 ```bash
 http://127.0.0.1:8765
 ```
 
-## CLI 用法
+### 3) Use your own template
 
-### 查看模板包
+In the open-source version, the safest path is:
+
+- upload a `.docx` / `.docm` template
+- upload a manuscript
+- run check / format / batch report
+
+## CLI examples
+
+### List template packages
 
 ```bash
 python3 app.py list-packages
 ```
 
-如果仓库里没有可用模板包，可以直接在下面命令里传 `--template`。
+If no valid built-in package is available, just pass `--template` directly.
 
-### 检查论文
+### Check a paper
 
 ```bash
-python3 app.py check --paper path/to/paper.docx --template path/to/template.docm
+python3 app.py check \
+  --paper path/to/paper.docx \
+  --template path/to/template.docm
 ```
 
-### 自动排版
+### Format a paper
 
 ```bash
 python3 app.py format \
@@ -97,7 +125,7 @@ python3 app.py format \
   --template path/to/template.docm
 ```
 
-### 检查并修复
+### Check and format in one step
 
 ```bash
 python3 app.py check-and-format \
@@ -106,7 +134,7 @@ python3 app.py check-and-format \
   --template path/to/template.docm
 ```
 
-### 批量检查
+### Batch check a folder
 
 ```bash
 python3 app.py batch-check \
@@ -115,9 +143,34 @@ python3 app.py batch-check \
   --template path/to/template.docm
 ```
 
-## 模板包
+## Web UI features
 
-如果你想做内置模板包，可以参考：
+The local Web UI supports:
+
+- runtime status / optional activation display
+- selecting a template package if one exists
+- overriding with an uploaded template file
+- single-document check
+- format-only download
+- check-and-format download
+- batch report ZIP download
+
+## Output artifacts
+
+GoodPaper can generate:
+
+- formatted `.docx`
+- structured issue list
+- paragraph-level findings
+- fix plan
+- recommendations
+- batch `summary.json`
+- batch `documents.csv`
+- batch `issues.csv`
+
+## Template packages
+
+If you want to define reusable template packages, the structure looks like this:
 
 ```text
 template_packages/
@@ -125,7 +178,7 @@ template_packages/
     manifest.json
 ```
 
-manifest 示例：
+Example manifest:
 
 ```json
 {
@@ -152,28 +205,60 @@ manifest 示例：
 }
 ```
 
-## 项目现状
+## Project status
 
-当前仍然是一个 **MVP / Beta**，优点是方向清楚、能本地跑、功能闭环已经成型；
-但它还不是一个成熟的“论文排版平台”。
+GoodPaper is already useful as a **local open-source tool**, but it is still early-stage software.
 
-还可以继续补的方向包括：
-- 单元测试
-- 更稳定的 DOCX / DOCM 边界处理
-- 更多出版社 / 会议模板适配
-- 更细的段落级修复建议
-- UI 体验优化
-- 插件化模板包系统
+What is already good:
 
-## 商业化 / 私有分发
+- clear scope
+- runs locally
+- CLI + Web UI both work
+- useful for first-pass paper formatting workflows
+- structured report output is practical
 
-仓库里保留了可选的激活能力代码，方便你后续做私有部署或商业分发。
-但在当前开源版里，默认是关闭强制激活的。
+What still needs work:
 
-如果你要启用私有分发：
-- 自己准备 `config/vendor.json`
-- 或设置环境变量 `GOODPAPER_VENDOR_SECRET`
-- 并在部署环境里设置 `GOODPAPER_REQUIRE_ACTIVATION=1`
+- automated tests
+- more robust DOCX / DOCM edge-case handling
+- more publisher / conference template adapters
+- better UI polish
+- sample test papers
+- clearer plugin-style template package system
+
+## Code review summary
+
+Before making this repo public, the project was reviewed and cleaned up for open-source readiness.
+
+Main fixes already made:
+
+- switched the repo to **MIT**
+- removed reliance on committed local activation state
+- ignored local artifacts like `.goodpaper/`, `outputs/`, `.DS_Store`
+- replaced vendor secret config with `vendor.example.json`
+- made open-source mode usable without activation
+- avoided hard dependency on bundled third-party template files
+- improved README for public GitHub usage
+
+Still recommended next:
+
+- add tests
+- add a sample safe template / demo manuscript pair
+- add screenshots or GIFs for the Web UI
+- add CI checks
+- improve validation coverage beyond current semantic rules
+
+## Optional private distribution mode
+
+The repo still keeps optional activation-related code so it can support private deployment or commercial distribution later.
+
+If you want to enable private activation flow:
+
+- create `config/vendor.json`
+- or set `GOODPAPER_VENDOR_SECRET`
+- and run with `GOODPAPER_REQUIRE_ACTIVATION=1`
+
+That mode is **not required** for the public open-source repo.
 
 ## License
 

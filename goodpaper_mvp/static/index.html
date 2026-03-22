@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GoodPaper_Beta</title>
+    <style>
+      :root {
+        --bg: #f3efe7;
+        --panel: rgba(255, 252, 247, 0.94);
+        --text: #1f1c17;
+        --muted: #6f655b;
+        --accent: #9f3e1e;
+        --accent-2: #1f6b61;
+        --accent-3: #3b4f92;
+        --border: rgba(31, 28, 23, 0.12);
+        --shadow: 0 24px 60px rgba(60, 40, 20, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Georgia", "Times New Roman", serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(159, 62, 30, 0.18), transparent 28%),
+          radial-gradient(circle at 85% 10%, rgba(31, 107, 97, 0.16), transparent 24%),
+          linear-gradient(180deg, #f9f5ee 0%, #efe7db 100%);
+        min-height: 100vh;
+      }
+
+      .shell {
+        width: min(1160px, calc(100vw - 32px));
+        margin: 32px auto;
+        padding: 28px;
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3.8rem);
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+      }
+
+      .subhead {
+        margin: 14px 0 0;
+        max-width: 820px;
+        font-size: 1rem;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 18px;
+        margin-top: 28px;
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      .card-wide {
+        grid-column: 1 / -1;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 1.2rem;
+      }
+
+      label {
+        display: block;
+        margin: 14px 0 6px;
+        font-size: 0.95rem;
+      }
+
+      input[type="file"],
+      input[type="text"],
+      select {
+        width: 100%;
+      }
+
+      input[type="text"],
+      select {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.92);
+      }
+
+      button {
+        border: 0;
+        border-radius: 999px;
+        padding: 12px 18px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        color: #fff;
+        background: linear-gradient(135deg, var(--accent), #ca6f42);
+      }
+
+      button.secondary {
+        background: linear-gradient(135deg, var(--accent-2), #2f8a7d);
+      }
+
+      button.tertiary {
+        background: linear-gradient(135deg, var(--accent-3), #6678b7);
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+      }
+
+      .status {
+        padding: 12px 14px;
+        border-radius: 16px;
+        background: rgba(31, 107, 97, 0.08);
+        color: var(--text);
+      }
+
+      .status.warn {
+        background: rgba(159, 62, 30, 0.08);
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      pre {
+        margin: 0;
+        padding: 18px;
+        min-height: 360px;
+        overflow: auto;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: #1d1a17;
+        color: #efe9df;
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <h1>GoodPaper_Beta</h1>
+      <p class="subhead">
+        开源论文排版与检查工具。支持上传模板、单篇检查、基础自动排版，以及批量检查导出报告。
+      </p>
+
+      <section class="grid">
+        <div class="card">
+          <h2>运行状态</h2>
+          <div id="license-status" class="status warn">正在读取运行状态...</div>
+          <label for="activation-code">可选激活码（私有部署用）</label>
+          <input id="activation-code" type="text" placeholder="开源模式默认可直接使用；只有私有部署才需要邀请码">
+          <div class="row">
+            <button id="activate-btn" type="button">写入激活码</button>
+          </div>
+          <p class="hint">开源模式默认不强制激活。只有你自己做私有分发时，才需要配置 vendor secret 和邀请码。</p>
+        </div>
+
+        <div class="card">
+          <h2>模板包</h2>
+          <label for="package-select">选择模板包</label>
+          <select id="package-select"></select>
+          <div id="package-meta" class="hint" style="margin-top:12px;">等待加载模板包...</div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="card">
+          <h2>检查论文</h2>
+          <p class="hint">模板文件可留空，默认使用上面选择的模板包。</p>
+          <label for="check-template">覆盖模板文件</label>
+          <input id="check-template" type="file" accept=".docx,.docm">
+          <label for="check-paper">论文文件</label>
+          <input id="check-paper" type="file" accept=".docx,.docm">
+          <div class="row">
+            <button id="check-btn" type="button">开始检查</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>基础自动排版</h2>
+          <p class="hint">当前格式化仅支持输入 <code>.docx</code>，输出新的 <code>.docx</code>。</p>
+          <label for="format-template">覆盖模板文件</label>
+          <input id="format-template" type="file" accept=".docx,.docm">
+          <label for="format-paper">论文文件</label>
+          <input id="format-paper" type="file" accept=".docx">
+          <div class="row">
+            <button class="secondary" id="format-btn" type="button">下载排版结果</button>
+            <button class="tertiary" id="check-format-btn" type="button">检查并修复</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>批量检查</h2>
+          <p class="hint">支持多选论文，下载 <code>summary.json</code>、<code>documents.csv</code>、<code>issues.csv</code> 的压缩包。</p>
+          <label for="batch-template">覆盖模板文件</label>
+          <input id="batch-template" type="file" accept=".docx,.docm">
+          <label for="batch-papers">论文文件</label>
+          <input id="batch-papers" type="file" accept=".docx,.docm" multiple>
+          <div class="row">
+            <button class="tertiary" id="batch-btn" type="button">下载批量报告</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="card card-wide">
+          <h2>结果</h2>
+          <pre id="result">等待操作...</pre>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const result = document.getElementById("result");
+      const packageSelect = document.getElementById("package-select");
+      const packageMeta = document.getElementById("package-meta");
+      const licenseStatus = document.getElementById("license-status");
+      let cachedStatus = null;
+
+      function appendStatus(message) {
+        result.textContent = message;
+      }
+
+      function triggerDownloadFromBlob(blob, fileName) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function downloadBase64Document(base64, fileName) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], {
+          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        });
+        triggerDownloadFromBlob(blob, fileName);
+      }
+
+      function renderAnalysis(payload) {
+        const lines = [];
+        const summary = payload.summary || {};
+        lines.push(`文档: ${payload.document?.file_name || payload.document?.path || "-"}`);
+        lines.push(`错误 ${summary.error_count || 0} / 警告 ${summary.warn_count || 0} / 提示 ${summary.info_count || 0}`);
+
+        const codeSummary = payload.issue_code_summary || [];
+        if (codeSummary.length) {
+          lines.push("");
+          lines.push("重点问题:");
+          for (const item of codeSummary.slice(0, 8)) {
+            lines.push(`- [${item.severity_label_zh || item.severity}] ${item.title_zh || item.code} × ${item.count}`);
+            if (item.why_zh) {
+              lines.push(`  原因: ${item.why_zh}`);
+            }
+            if (item.fix_zh) {
+              lines.push(`  建议: ${item.fix_zh}`);
+            }
+          }
+        }
+
+        const fixPlan = payload.fix_plan || {};
+        if ((fixPlan.auto_fixable_issue_count || 0) > 0) {
+          lines.push("");
+          lines.push(`可自动修复段落: ${fixPlan.auto_fixable_issue_count}`);
+          for (const action of (fixPlan.actions || []).slice(0, 12)) {
+            lines.push(`- ${((action.titles_zh || []).join("；")) || "样式修复"}`);
+            lines.push(`- 第 ${action.paragraph_index} 段: ${action.from_style || "无样式"} -> ${action.to_style}`);
+            lines.push(`  ${action.paragraph_text}`);
+            if ((action.suggestions || []).length) {
+              lines.push(`  建议: ${action.suggestions[0]}`);
+            }
+          }
+        }
+
+        const paragraphFindings = payload.paragraph_findings || [];
+        if (paragraphFindings.length) {
+          lines.push("");
+          lines.push("段落定位:");
+          for (const finding of paragraphFindings.slice(0, 12)) {
+            lines.push(
+              `- 第 ${finding.paragraph_index} 段 [${finding.primary_severity_label_zh || finding.primary_severity}] ${finding.current_style || "无样式"} -> ${finding.expected_styles.join(", ") || "-"}`
+            );
+            lines.push(`  ${finding.paragraph_text}`);
+            if ((finding.titles_zh || []).length) {
+              lines.push(`  问题: ${finding.titles_zh.join("；")}`);
+            }
+            if ((finding.suggestions || []).length) {
+              lines.push(`  建议: ${finding.suggestions[0]}`);
+            } else if ((finding.messages || []).length) {
+              lines.push(`  ${finding.messages[0]}`);
+            }
+          }
+        }
+
+        const recommendations = payload.recommendations || [];
+        if (recommendations.length) {
+          lines.push("");
+          lines.push("建议:");
+          for (const item of recommendations) {
+            lines.push(`- ${item}`);
+          }
+        }
+
+        if (!paragraphFindings.length && !codeSummary.length) {
+          lines.push("");
+          lines.push("未发现问题。");
+        }
+        return lines.join("\n");
+      }
+
+      function renderCheckAndFormat(payload) {
+        const lines = [];
+        lines.push("修复前");
+        lines.push(renderAnalysis(payload.before));
+        lines.push("");
+        lines.push("修复结果");
+        lines.push(`输出文件: ${payload.formatted.output_path}`);
+        lines.push(`改动数量: ${payload.formatted.change_count}`);
+        const counts = payload.formatted.applied_style_counts || {};
+        for (const [styleName, count] of Object.entries(counts)) {
+          lines.push(`- ${styleName}: ${count}`);
+        }
+        lines.push("");
+        lines.push("修复后");
+        lines.push(renderAnalysis(payload.after));
+        return lines.join("\n");
+      }
+
+      function selectedPackageId() {
+        return packageSelect.value || "";
+      }
+
+      function updateActivationUI(status) {
+        const license = status.license;
+        if (license.reason === "open_source_mode") {
+          licenseStatus.className = "status";
+          licenseStatus.textContent = `开源模式已启用，可直接使用。设备: ${license.device_id}`;
+        } else if (license.activated) {
+          licenseStatus.className = "status";
+          licenseStatus.textContent = `已激活，套餐: ${license.package_id}，到期: ${license.expires_on}，设备: ${license.device_id}`;
+        } else {
+          licenseStatus.className = "status warn";
+          licenseStatus.textContent = `未激活，原因: ${license.reason}`;
+        }
+
+        const disabled = !license.activated;
+        document.getElementById("check-btn").disabled = disabled;
+        document.getElementById("format-btn").disabled = disabled;
+        document.getElementById("check-format-btn").disabled = disabled;
+        document.getElementById("batch-btn").disabled = disabled;
+      }
+
+      function updatePackages(status) {
+        const packages = status.packages || [];
+        packageSelect.innerHTML = "";
+        if (!packages.length) {
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = "无内置模板包（请直接上传模板文件）";
+          packageSelect.appendChild(option);
+          packageSelect.disabled = true;
+          renderPackageMeta();
+          return;
+        }
+
+        packageSelect.disabled = false;
+        for (const item of packages) {
+          const option = document.createElement("option");
+          option.value = item.package_id;
+          option.textContent = `${item.name} (${item.package_id})`;
+          packageSelect.appendChild(option);
+        }
+
+        const preferred = status.license.package_id || status.default_package_id;
+        if (preferred) {
+          packageSelect.value = preferred;
+        }
+        renderPackageMeta();
+      }
+
+      function renderPackageMeta() {
+        if (!cachedStatus) {
+          return;
+        }
+        const pkg = (cachedStatus.packages || []).find(item => item.package_id === selectedPackageId());
+        if (!pkg) {
+          packageMeta.textContent = "当前仓库不内置第三方模板，直接上传你自己的 .docx / .docm 模板即可使用。";
+          return;
+        }
+        packageMeta.textContent = `${pkg.description} 版本 ${pkg.version}。模板文件: ${pkg.template_path}`;
+      }
+
+      async function refreshStatus() {
+        const response = await fetch("/api/status");
+        const payload = await response.json();
+        cachedStatus = payload;
+        updateActivationUI(payload);
+        updatePackages(payload);
+        return payload;
+      }
+
+      async function postForm(url, fields, expectsBlob = false) {
+        const formData = new FormData();
+        for (const [key, value] of fields) {
+          if (Array.isArray(value)) {
+            for (const file of value) {
+              formData.append(key, file);
+            }
+          } else if (value !== undefined && value !== null && value !== "") {
+            formData.append(key, value);
+          }
+        }
+
+        const response = await fetch(url, {
+          method: "POST",
+          body: formData
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+
+        return expectsBlob ? response.blob() : response.json();
+      }
+
+      async function postJson(url, payload) {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+        return response.json();
+      }
+
+      packageSelect.addEventListener("change", renderPackageMeta);
+
+      document.getElementById("activate-btn").addEventListener("click", async () => {
+        const code = document.getElementById("activation-code").value.trim();
+        if (!code) {
+          appendStatus("请先输入邀请码。");
+          return;
+        }
+        appendStatus("正在激活本机...");
+        try {
+          const payload = await postJson("/api/activate", { code });
+          await refreshStatus();
+          appendStatus(JSON.stringify(payload, null, 2));
+        } catch (error) {
+          appendStatus(`激活失败: ${error.message}`);
+        }
+      });
+
+      document.getElementById("check-btn").addEventListener("click", async () => {
+        const template = document.getElementById("check-template").files[0];
+        const paper = document.getElementById("check-paper").files[0];
+        if (!paper) {
+          appendStatus("请先选择论文文件。");
+          return;
+        }
+
+        appendStatus("正在检查论文格式...");
+        try {
+          const payload = await postForm("/api/check", [
+            ["package_id", selectedPackageId()],
+            ["template", template],
+            ["paper", paper]
+          ]);
+          appendStatus(renderAnalysis(payload));
+        } catch (error) {
+          appendStatus(`检查失败: ${error.message}`);
+        }
+      });
+
+      document.getElementById("format-btn").addEventListener("click", async () => {
+        const template = document.getElementById("format-template").files[0];
+        const paper = document.getElementById("format-paper").files[0];
+        if (!paper) {
+          appendStatus("请先选择 .docx 论文文件。");
+          return;
+        }
+
+        appendStatus("正在生成排版后的文件...");
+        try {
+          const blob = await postForm("/api/format", [
+            ["package_id", selectedPackageId()],
+            ["template", template],
+            ["paper", paper]
+          ], true);
+          triggerDownloadFromBlob(blob, paper.name.replace(/\.docx$/i, "") + "-formatted.docx");
+          appendStatus("排版完成，浏览器已经开始下载结果文件。");
+        } catch (error) {
+          appendStatus(`排版失败: ${error.message}`);
+        }
+      });
+
+      document.getElementById("check-format-btn").addEventListener("click", async () => {
+        const template = document.getElementById("format-template").files[0];
+        const paper = document.getElementById("format-paper").files[0];
+        if (!paper) {
+          appendStatus("请先选择 .docx 论文文件。");
+          return;
+        }
+
+        appendStatus("正在检查并修复论文...");
+        try {
+          const payload = await postForm("/api/check-and-format", [
+            ["package_id", selectedPackageId()],
+            ["template", template],
+            ["paper", paper]
+          ]);
+          downloadBase64Document(
+            payload.document_base64,
+            payload.download_name || paper.name.replace(/\.docx$/i, "") + "-formatted.docx"
+          );
+          appendStatus(renderCheckAndFormat(payload));
+        } catch (error) {
+          appendStatus(`检查并修复失败: ${error.message}`);
+        }
+      });
+
+      document.getElementById("batch-btn").addEventListener("click", async () => {
+        const template = document.getElementById("batch-template").files[0];
+        const papers = Array.from(document.getElementById("batch-papers").files);
+        if (!papers.length) {
+          appendStatus("请先选择至少一个论文文件。");
+          return;
+        }
+
+        appendStatus("正在生成批量检查报告...");
+        try {
+          const blob = await postForm("/api/batch-check", [
+            ["package_id", selectedPackageId()],
+            ["template", template],
+            ["papers", papers]
+          ], true);
+          triggerDownloadFromBlob(blob, "goodpaper-batch-report.zip");
+          appendStatus("批量报告已经开始下载。");
+        } catch (error) {
+          appendStatus(`批量检查失败: ${error.message}`);
+        }
+      });
+
+      refreshStatus().catch(error => {
+        appendStatus(`初始化失败: ${error.message}`);
+      });
+    </script>
+  </body>
+</html>

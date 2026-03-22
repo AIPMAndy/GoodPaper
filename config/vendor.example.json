@@ -1,0 +1,4 @@
+{
+  "issuer": "GoodPaper",
+  "secret": "set-a-real-secret-in-private-deployment"
+}

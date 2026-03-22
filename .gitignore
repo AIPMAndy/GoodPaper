@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Local runtime artifacts
+.goodpaper/
+outputs/
+*.log
+
+# Bundled proprietary / local template assets
+splnproc2311.docm
+config/vendor.json
+
+# Editor
+.vscode/
+.idea/

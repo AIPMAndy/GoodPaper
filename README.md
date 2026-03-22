@@ -2,12 +2,27 @@
 
 **Open-source paper formatting helper for `.docx` / `.docm` manuscripts.**
 
-GoodPaper is designed for a very practical job:
+GoodPaper focuses on one practical problem:
 
-> **check whether a manuscript matches a target template, generate a first-pass formatting fix, and export structured reports for manual cleanup.**
+> **given a target paper template, check whether a manuscript matches it, generate a first-pass formatting fix, and export structured reports for manual cleanup.**
 
 It is **not** an AI writing tool.
 It is a **paper formatting + compliance helper** for authors, labs, teaching staff, and editors.
+
+---
+
+## Why this project exists
+
+In real paper submission workflows, the painful part is often not writing the content itself, but:
+
+- aligning the manuscript with a required template
+- checking whether headings / abstract / references are styled correctly
+- batch-reviewing multiple student or lab submissions
+- doing the **first formatting pass automatically** before human polish
+
+GoodPaper is built for that exact workflow.
+
+---
 
 ## What GoodPaper can do
 
@@ -17,6 +32,8 @@ It is a **paper formatting + compliance helper** for authors, labs, teaching sta
 - Run **check → format → re-check** in one step
 - Batch-check multiple papers and export reports
 - Work through both **CLI** and **local Web UI**
+
+---
 
 ## Current rule coverage
 
@@ -34,6 +51,8 @@ GoodPaper currently covers these common academic structure elements:
 - displayed equation
 - references heading and reference items
 
+---
+
 ## Typical use cases
 
 GoodPaper is useful when you want to:
@@ -42,6 +61,8 @@ GoodPaper is useful when you want to:
 - help students align papers to a required template
 - batch-review a folder of manuscripts in a lab or course
 - do the **first formatting pass automatically**, then finish the remaining edits manually
+
+---
 
 ## Open-source mode
 
@@ -57,16 +78,20 @@ That means:
 So people can clone the repo and run it directly.
 If they want to format against a real publisher / conference template, they should **upload their own template file** or configure a local template package.
 
+---
+
 ## Why the repo does not bundle publisher templates
 
 Many publisher / conference templates (`.docm`, `.dotm`, etc.) may have redistribution restrictions.
 
-To avoid copyright and redistribution risk, this open-source repo does **not** rely on shipping third-party templates publicly.
+To avoid copyright and redistribution risk, this open-source repo does **not** ship third-party templates publicly.
 
 Recommended usage:
 
 1. **upload your own template file** in Web UI or CLI
 2. or define your own package under `template_packages/`
+
+---
 
 ## Quick start
 
@@ -97,6 +122,8 @@ In the open-source version, the safest path is:
 - upload a `.docx` / `.docm` template
 - upload a manuscript
 - run check / format / batch report
+
+---
 
 ## CLI examples
 
@@ -143,6 +170,8 @@ python3 app.py batch-check \
   --template path/to/template.docm
 ```
 
+---
+
 ## Web UI features
 
 The local Web UI supports:
@@ -154,6 +183,8 @@ The local Web UI supports:
 - format-only download
 - check-and-format download
 - batch report ZIP download
+
+---
 
 ## Output artifacts
 
@@ -167,6 +198,8 @@ GoodPaper can generate:
 - batch `summary.json`
 - batch `documents.csv`
 - batch `issues.csv`
+
+---
 
 ## Template packages
 
@@ -205,6 +238,32 @@ Example manifest:
 }
 ```
 
+---
+
+## Code review summary
+
+Before making this repo public, the project was reviewed and cleaned up for open-source readiness.
+
+Main fixes already made:
+
+- switched the repository license to **Apache-2.0**
+- removed reliance on committed local activation state
+- ignored local artifacts like `.goodpaper/`, `outputs/`, `.DS_Store`
+- replaced vendor secret config with `vendor.example.json`
+- made open-source mode usable without activation
+- avoided hard dependency on bundled third-party template files
+- improved README for public GitHub usage
+
+Still recommended next:
+
+- add tests
+- add a sample safe template / demo manuscript pair
+- add screenshots or GIFs for the Web UI
+- add CI checks
+- improve validation coverage beyond current semantic rules
+
+---
+
 ## Project status
 
 GoodPaper is already useful as a **local open-source tool**, but it is still early-stage software.
@@ -226,27 +285,7 @@ What still needs work:
 - sample test papers
 - clearer plugin-style template package system
 
-## Code review summary
-
-Before making this repo public, the project was reviewed and cleaned up for open-source readiness.
-
-Main fixes already made:
-
-- switched the repo to **MIT**
-- removed reliance on committed local activation state
-- ignored local artifacts like `.goodpaper/`, `outputs/`, `.DS_Store`
-- replaced vendor secret config with `vendor.example.json`
-- made open-source mode usable without activation
-- avoided hard dependency on bundled third-party template files
-- improved README for public GitHub usage
-
-Still recommended next:
-
-- add tests
-- add a sample safe template / demo manuscript pair
-- add screenshots or GIFs for the Web UI
-- add CI checks
-- improve validation coverage beyond current semantic rules
+---
 
 ## Optional private distribution mode
 
@@ -259,6 +298,8 @@ If you want to enable private activation flow:
 - and run with `GOODPAPER_REQUIRE_ACTIVATION=1`
 
 That mode is **not required** for the public open-source repo.
+
+---
 
 ## License
 

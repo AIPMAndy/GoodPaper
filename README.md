@@ -262,4 +262,4 @@ That mode is **not required** for the public open-source repo.
 
 ## License
 
-MIT
+Apache-2.0

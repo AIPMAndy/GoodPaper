@@ -12,11 +12,7 @@ from urllib.parse import urlparse
 from .core import analyze_document, format_document
 from .licensing import activate_invite_code, get_license_status, require_activation
 from .reports import build_batch_report_zip, collect_batch_report
-from .templates import (
-    get_default_template_package,
-    list_template_packages,
-    resolve_template_context,
-)
+from .templates import discover_template_packages, get_default_template_package, list_template_packages, resolve_template_context
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 INDEX_HTML_PATH = PROJECT_ROOT / "goodpaper_mvp" / "static" / "index.html"
@@ -287,7 +283,9 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
         return resolve_template_context(template_path=template_path, package_id=package_id)
 
     def _status_payload(self) -> dict:
-        packages = [package.to_dict() for package in list_template_packages()]
+        discovery = discover_template_packages()
+        packages = [package.to_dict() for package in discovery["packages"]]
+        issues = [issue.to_dict() for issue in discovery["issues"]]
         default_package_id = None
         try:
             default_package_id = get_default_template_package().package_id
@@ -296,6 +294,7 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
         return {
             "license": get_license_status().to_dict(),
             "packages": packages,
+            "package_issues": issues,
             "default_package_id": default_package_id,
         }
 

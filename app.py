@@ -12,7 +12,7 @@ from goodpaper_mvp.licensing import (
 )
 from goodpaper_mvp.reports import collect_batch_report, write_batch_report_files
 from goodpaper_mvp.server import run_server
-from goodpaper_mvp.templates import list_template_packages, resolve_template_context
+from goodpaper_mvp.templates import discover_template_packages, resolve_template_context
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -75,7 +75,11 @@ def main() -> None:
         return
 
     if args.command == "list-packages":
-        payload = {"packages": [package.to_dict() for package in list_template_packages()]}
+        discovery = discover_template_packages()
+        payload = {
+            "packages": [package.to_dict() for package in discovery["packages"]],
+            "issues": [issue.to_dict() for issue in discovery["issues"]],
+        }
         print(to_pretty_json(payload))
         return
 
@@ -111,6 +115,7 @@ def main() -> None:
 
     if args.command == "format":
         require_activation()
+        args.output.parent.mkdir(parents=True, exist_ok=True)
         context = resolve_template_context(template_path=args.template, package_id=args.package_id)
         payload = format_document(
             context["template_path"],
@@ -124,6 +129,7 @@ def main() -> None:
 
     if args.command == "check-and-format":
         require_activation()
+        args.output.parent.mkdir(parents=True, exist_ok=True)
         context = resolve_template_context(template_path=args.template, package_id=args.package_id)
         before = analyze_document(
             context["template_path"],
@@ -152,6 +158,7 @@ def main() -> None:
 
     if args.command == "batch-check":
         require_activation()
+        args.output_dir.mkdir(parents=True, exist_ok=True)
         context = resolve_template_context(template_path=args.template, package_id=args.package_id)
         paper_paths = sorted(
             [

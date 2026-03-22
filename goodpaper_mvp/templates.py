@@ -5,6 +5,15 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+
+@dataclass
+class TemplatePackageLoadIssue:
+    manifest_path: str
+    error: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
 from .core import SEMANTIC_STYLE_IDS, get_template_profile
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -52,19 +61,29 @@ def _build_package(manifest_path: Path) -> TemplatePackage:
     )
 
 
-def list_template_packages() -> list[TemplatePackage]:
+def discover_template_packages() -> dict[str, Any]:
     packages: list[TemplatePackage] = []
+    issues: list[TemplatePackageLoadIssue] = []
     if not TEMPLATE_PACKAGES_DIR.exists():
-        return packages
+        return {"packages": packages, "issues": issues}
 
     for manifest_path in sorted(TEMPLATE_PACKAGES_DIR.glob("*/manifest.json")):
         try:
             packages.append(_build_package(manifest_path))
-        except Exception:
-            continue
+        except Exception as exc:
+            issues.append(
+                TemplatePackageLoadIssue(
+                    manifest_path=str(manifest_path),
+                    error=str(exc),
+                )
+            )
 
     packages.sort(key=lambda item: (not item.default, item.package_id))
-    return packages
+    return {"packages": packages, "issues": issues}
+
+
+def list_template_packages() -> list[TemplatePackage]:
+    return discover_template_packages()["packages"]
 
 
 def get_template_package(package_id: str) -> TemplatePackage:
@@ -93,13 +112,20 @@ def resolve_template_context(
     if template_path is not None:
         if not template_path.exists():
             raise ValueError(f"Template file not found: {template_path}")
+        if template_path.suffix.lower() not in {".docx", ".docm", ".dotx", ".dotm"}:
+            raise ValueError("Template file must be a .docx, .docm, .dotx, or .dotm Word template/document.")
         return {
             "template_path": template_path,
             "package": None,
             "semantic_styles": dict(SEMANTIC_STYLE_IDS),
         }
 
-    package = get_template_package(package_id) if package_id else get_default_template_package()
+    try:
+        package = get_template_package(package_id) if package_id else get_default_template_package()
+    except ValueError as exc:
+        raise ValueError(
+            f"{exc} Upload a Word template with --template, or add a valid package under template_packages/."
+        ) from exc
     return {
         "template_path": Path(package.template_path),
         "package": package.to_dict(),

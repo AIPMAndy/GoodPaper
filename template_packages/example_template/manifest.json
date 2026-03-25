@@ -1,0 +1,22 @@
+{
+  "package_id": "example_template",
+  "name": "Example Academic Template",
+  "description": "A simple example template for testing GoodPaper. Copy and modify for your own templates.",
+  "version": "1.0.0",
+  "default": true,
+  "template_file": "example_template.docx",
+  "semantic_styles": {
+    "title": "Title",
+    "author": "Author",
+    "address": "Affiliation",
+    "abstract": "Abstract",
+    "keywords": "Keywords",
+    "heading_1": "Heading 1",
+    "heading_2": "Heading 2",
+    "first_paragraph": "Normal",
+    "table_caption": "Table Caption",
+    "figure_caption": "Figure Caption",
+    "equation": "Equation",
+    "references": "Reference"
+  }
+}

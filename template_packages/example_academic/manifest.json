@@ -1,0 +1,22 @@
+{
+  "package_id": "example_academic",
+  "name": "Example Academic Template",
+  "description": "A simple academic paper template for demonstration and testing purposes.",
+  "version": "1.0.0",
+  "default": true,
+  "template_file": "template.docx",
+  "semantic_styles": {
+    "title": "Title",
+    "author": "Normal",
+    "address": "Normal",
+    "abstract": "Normal",
+    "keywords": "Normal",
+    "heading_1": "Heading 1",
+    "heading_2": "Heading 2",
+    "first_paragraph": "Normal",
+    "table_caption": "Caption",
+    "figure_caption": "Caption",
+    "equation": "Normal",
+    "references": "List Number"
+  }
+}

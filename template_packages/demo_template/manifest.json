@@ -1,0 +1,22 @@
+{
+  "package_id": "demo_template",
+  "name": "Demo Template",
+  "description": "A demo template package for testing GoodPaper. Users should upload their own conference/journal templates.",
+  "version": "1.0.0",
+  "default": false,
+  "template_file": "demo_template.docx",
+  "semantic_styles": {
+    "title": "Title",
+    "author": "Author",
+    "address": "Affiliation",
+    "abstract": "Abstract",
+    "keywords": "Keywords",
+    "heading_1": "Heading1",
+    "heading_2": "Heading2",
+    "first_paragraph": "FirstParagraph",
+    "table_caption": "TableCaption",
+    "figure_caption": "FigureCaption",
+    "equation": "Equation",
+    "references": "ReferenceItem"
+  }
+}

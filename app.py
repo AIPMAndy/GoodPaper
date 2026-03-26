@@ -34,52 +34,95 @@ def main():
     args = parser.parse_args()
 
     if args.command == "serve":
-        # 启动 FastAPI 服务
-        import uvicorn
-        from goodpaper_mvp.fastapi_server import app
+        # 启动内置 HTTP 服务
+        from goodpaper_mvp.server import run_server
 
         print(f"🚀 启动 GoodPaper 服务...")
         print(f"📍 http://{args.host}:{args.port}")
-        print(f"📖 API 文档: http://{args.host}:{args.port}/docs")
-        uvicorn.run(
-            "goodpaper_mvp.fastapi_server:app",
-            host=args.host,
-            port=args.port,
-            reload=True,
-        )
+        run_server(host=args.host, port=args.port)
 
     elif args.command == "check":
         if not args.paper:
             print("❌ 请指定论文文件: goodpaper check <paper.docx>")
             sys.exit(1)
 
-        from goodpaper_mvp.core_cli import check_paper_cli
+        from goodpaper_mvp.core import analyze_document
+        from pathlib import Path
 
-        check_paper_cli(
-            paper_path=args.paper,
-            template_path=args.template,
-            template_package=args.package,
-        )
+        paper_path = Path(args.paper)
+        if not paper_path.exists():
+            print(f"❌ 文件不存在: {paper_path}")
+            sys.exit(1)
+
+        print(f"📄 正在检查: {paper_path.name}")
+        print("-" * 50)
+
+        # 使用默认模板
+        from goodpaper_mvp.templates import get_default_template_package
+        template_pkg = get_default_template_package()
+        template_path = template_pkg.template_path if hasattr(template_pkg, 'template_path') else str(template_pkg)
+
+        result = analyze_document(Path(template_path), paper_path)
+
+        # 显示结果
+        issues = result.get("issues", [])
+        summary = result.get("summary", {})
+
+        print(f"\n📊 检查结果:")
+        print(f"   问题总数: {summary.get('total_issues', len(issues))}")
+        print(f"   严重: {summary.get('error_count', 0)} | 警告: {summary.get('warning_count', 0)} | 提示: {summary.get('info_count', 0)}")
+
+        if issues:
+            print(f"\n🔍 前 5 个问题:")
+            for i, issue in enumerate(issues[:5], 1):
+                severity = issue.get("severity", "info")
+                icon = "🔴" if severity == "error" else "🟡" if severity == "warning" else "🔵"
+                print(f"   {i}. {icon} [{issue.get('category', 'unknown')}] {issue.get('message', '')}")
+
+        # 保存报告
+        report_path = paper_path.parent / f"{paper_path.stem}_report.json"
+        import json
+        with open(report_path, 'w', encoding='utf-8') as f:
+            json.dump(result, f, ensure_ascii=False, indent=2)
+        print(f"\n📄 报告已保存: {report_path}")
 
     elif args.command == "format":
         if not args.paper:
             print("❌ 请指定论文文件: goodpaper format <paper.docx>")
             sys.exit(1)
 
-        from goodpaper_mvp.core_cli import format_paper_cli
+        from goodpaper_mvp.core import format_document
+        from pathlib import Path
 
-        output_path = args.output or args.paper.replace(".docx", "_formatted.docx")
-        format_paper_cli(
-            paper_path=args.paper,
-            template_path=args.template,
-            template_package=args.package,
-            output_path=output_path,
-        )
+        paper_path = Path(args.paper)
+        if not paper_path.exists():
+            print(f"❌ 文件不存在: {paper_path}")
+            sys.exit(1)
+
+        output_path = Path(args.output) if args.output else paper_path.parent / f"{paper_path.stem}_formatted.docx"
+
+        print(f"📄 正在排版: {paper_path.name}")
+        print("-" * 50)
+
+        from goodpaper_mvp.templates import get_default_template_package
+        template_ctx = get_default_template_package()
+
+        format_document(str(paper_path), str(output_path), template_ctx)
+
+        print(f"✅ 排版完成: {output_path}")
 
     elif args.command == "template":
-        from goodpaper_mvp.core_cli import list_templates_cli
+        from goodpaper_mvp.templates import list_template_packages
 
-        list_templates_cli()
+        print("📋 可用模板:")
+        print("-" * 50)
+
+        packages = list_template_packages()
+        for pkg in packages:
+            pkg_dict = pkg.to_dict()
+            print(f"\n📄 {pkg_dict.get('name', 'unknown')}")
+            print(f"   版本: {pkg_dict.get('version', 'N/A')}")
+            print(f"   描述: {pkg_dict.get('description', 'N/A')}")
 
 
 if __name__ == "__main__":

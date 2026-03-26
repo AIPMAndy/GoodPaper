@@ -1,199 +1,89 @@
-<div align="center">
+# GoodPaper
 
-# 📄 GoodPaper
+> 学术论文格式检查与自动排版工具
 
-**Open-source paper formatting helper for `.docx` / `.docm` manuscripts.**
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-green.svg)](https://fastapi.tiangolo.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/AIPMAndy/GoodPaper?style=social)](https://github.com/AIPMAndy/GoodPaper/stargazers)
+## ✨ 功能特性
 
-**Check → Format → Re-check** your academic papers in one command.
+- 📄 **格式检查**：字体、字号、行距、缩进、页边距等
+- 📊 **图表检查**：表格标题、三线表样式、图片分辨率
+- 📚 **参考文献**：GB/T 7714 格式校验、引用一致性
+- 🔧 **自动排版**：一键修复格式问题
+- 🎯 **合规评分**：0-100 分直观反馈
+- 🌐 **Web 界面**：可视化报告，支持导出
 
-[Quick Start](#quick-start) • [CLI Examples](#cli-examples) • [Web UI](#web-ui-features) • [Template Packages](#template-packages)
+## 🚀 快速开始
 
-</div>
-
----
-
-## 🆚 Why GoodPaper?
-
-| Feature | Manual Formatting | LaTeX | **GoodPaper** |
-|---------|:-----------------:|:-----:|:-------------:|
-| Learning Curve | ⚠️ Medium | ❌ Steep | ✅ **Zero** |
-| Template Compliance | ❌ Manual check | ✅ Good | ✅ **Automated** |
-| Batch Processing | ❌ One by one | ⚠️ Script needed | ✅ **Built-in** |
-| Word Compatibility | ✅ Native | ❌ Export needed | ✅ **Native** |
-| First-pass Auto-fix | ❌ Manual | ❌ Manual | ✅ **Automatic** |
-| Structured Reports | ❌ None | ⚠️ Log files | ✅ **JSON/CSV** |
-| **100% Free & Open** | - | - | ✅ **Yes** |
-
-**GoodPaper** is the only tool that combines **Word-native workflow** with **automated formatting compliance checking** — no LaTeX learning curve, no manual checking.
-
----
-
-## 🚀 Quick Start (30 seconds)
+### 安装依赖
 
 ```bash
-# 1. Clone & install
-git clone https://github.com/AIPMAndy/GoodPaper.git
-cd GoodPaper
-python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-
-# 2. Check a paper
-python3 app.py check --paper mypaper.docx --package example_template
-
-# 3. Auto-format
-python3 app.py format --paper mypaper.docx --output fixed.docx --package example_template
 ```
 
----
+### 启动 Web 服务
 
-## ✨ What GoodPaper Can Do
-
-### 📋 Check Paper Format
-Detect mismatches between your manuscript and target template:
-- Title / Author / Abstract formatting
-- Heading levels (H1, H2)
-- Table & figure captions
-- References style
-- First paragraph after headings
-
-### 🔧 Auto-Format
-Generate first-pass formatted `.docx` with one command:
-- Applies correct styles automatically
-- Preserves your content
-- Ready for manual polish
-
-### 📊 Batch Processing
-Check entire folders of papers:
-- Export structured reports (JSON/CSV)
-- Perfect for labs, courses, editorial workflows
-- Identify common issues across submissions
-
-### 🌐 Web UI
-Local web interface at `http://127.0.0.1:8765`:
-- Upload template & manuscript
-- Visual check results
-- Download formatted papers
-- Batch report ZIP download
-
----
-
-## 📖 CLI Examples
-
-### List Available Templates
 ```bash
-python3 app.py list-packages
+python app.py serve
+# 或
+uvicorn goodpaper_mvp.fastapi_server:app --reload
 ```
 
-### Check Single Paper
+访问 http://localhost:8787 使用 Web 界面
+
+### CLI 使用
+
 ```bash
-python3 app.py check \
-  --paper path/to/paper.docx \
-  --template path/to/template.docm
+# 检查论文格式
+python app.py check paper.docx
+
+# 自动排版
+python app.py format paper.docx -o output.docx
+
+# 查看可用模板
+python app.py template
 ```
 
-### Check & Format in One Step
-```bash
-python3 app.py check-and-format \
-  --paper path/to/paper.docx \
-  --output outputs/paper-formatted.docx \
-  --template path/to/template.docm
-```
-
-### Batch Check Folder
-```bash
-python3 app.py batch-check \
-  --input-dir path/to/folder \
-  --output-dir outputs/batch-report \
-  --template path/to/template.docm
-```
-
----
-
-## 🎯 Use Cases
-
-- **Conference/Journal Submission** - Check compliance before upload
-- **Teaching & Labs** - Batch-review student papers
-- **Editorial Workflows** - First-pass formatting automation
-- **Template Migration** - Convert papers between templates
-
----
-
-## 🏗️ Architecture
+## 📁 项目结构
 
 ```
 GoodPaper/
-├── goodpaper_mvp/          # Core library
-│   ├── core.py             # Document analysis & formatting
-│   ├── templates.py        # Template package management
-│   ├── reports.py          # Batch report generation
-│   ├── server.py           # Web UI server
-│   └── licensing.py        # Optional activation
-├── template_packages/      # Template definitions
-│   ├── example_template/   # Example academic template
-│   ├── example_academic/   # Another example
-│   └── demo_template/      # Demo template
-├── app.py                  # CLI entry point
-└── requirements.txt        # Dependencies
+├── app.py                      # 主入口 (CLI + Web)
+├── goodpaper_mvp/
+│   ├── core_cli.py            # 核心检查逻辑
+│   ├── severity.py            # 严重等级分层
+│   ├── scoring.py             # 合规评分引擎
+│   ├── fastapi_server.py      # Web API
+│   ├── static/
+│   │   └── index.html         # 前端页面
+│   └── checkers/              # 检查插件
+│       ├── table_checker.py
+│       ├── figure_checker.py
+│       └── reference_checker.py
+├── tests/                     # 单元测试
+└── requirements.txt
 ```
 
----
+## 🛠️ 技术栈
 
-## 📝 Template Packages
+- **后端**: Python + FastAPI + python-docx
+- **前端**: HTML5 + CSS3 + Vanilla JS
+- **检查引擎**: 插件化架构，支持扩展
 
-Define reusable template packages under `template_packages/`:
+## 📈 开发路线
 
-```json
-{
-  "package_id": "my_conference",
-  "name": "My Conference Template",
-  "template_file": "template.docm",
-  "default": true,
-  "semantic_styles": {
-    "title": "papertitle",
-    "author": "author",
-    "abstract": "abstract",
-    "heading_1": "heading1",
-    "heading_2": "heading2"
-  }
-}
-```
+- [x] Sprint 1: 严重等级分层 + 评分系统 + Web 界面
+- [ ] Sprint 2: 图表检查 + 参考文献检查
+- [ ] Sprint 3: FastAPI 迁移 + CI/CD
+- [ ] Sprint 4: 自动排版增强 + diff 预览
+- [ ] Sprint 5: 模板编辑器 + 内置模板
 
----
+## 🤝 贡献
 
-## 🚧 Roadmap
-
-- [x] Core document analysis
-- [x] Auto-formatting engine
-- [x] CLI interface
-- [x] Web UI
-- [x] Batch processing
-- [ ] More publisher templates
-- [ ] Plugin system for custom rules
-- [ ] CI/CD integration
-- [ ] Docker support
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
+欢迎 Issue 和 PR！
 
 ## 📄 License
 
-Apache 2.0 — free to use, modify, and distribute.
-
----
-
-<div align="center">
-
-**If GoodPaper helps your research, please give us a ⭐ Star!**
-
-[![Star History Chart](https://api.star-history.com/svg?repos=AIPMAndy/GoodPaper&type=Date)](https://star-history.com/#AIPMAndy/GoodPaper&Date)
-
-</div>
+MIT License

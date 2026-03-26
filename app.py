@@ -1,183 +1,85 @@
+#!/usr/bin/env python3
+"""
+GoodPaper - 学术论文格式检查与自动排版工具
+主入口文件
+"""
+
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
-from goodpaper_mvp.core import analyze_document, format_document, to_pretty_json
-from goodpaper_mvp.licensing import (
-    activate_invite_code,
-    get_license_status,
-    issue_invite_code,
-    require_activation,
-)
-from goodpaper_mvp.reports import collect_batch_report, write_batch_report_files
-from goodpaper_mvp.server import run_server
-from goodpaper_mvp.templates import discover_template_packages, resolve_template_context
+# 确保 goodpaper_mvp 在路径中
+sys.path.insert(0, str(Path(__file__).parent))
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="GoodPaper")
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    serve_parser = subparsers.add_parser("serve", help="Run the local web app")
-    serve_parser.add_argument("--host", default="127.0.0.1")
-    serve_parser.add_argument("--port", type=int, default=8765)
-
-    packages_parser = subparsers.add_parser("list-packages", help="List available template packages")
-
-    issue_parser = subparsers.add_parser("issue-code", help="Issue a local invite code")
-    issue_parser.add_argument("--package", dest="package_id")
-    issue_parser.add_argument("--days", type=int, default=30)
-    issue_parser.add_argument("--serial")
-
-    activate_parser = subparsers.add_parser("activate", help="Activate this Mac using an invite code")
-    activate_parser.add_argument("--code", required=True)
-
-    subparsers.add_parser("license-status", help="Show local activation status")
-
-    check_parser = subparsers.add_parser("check", help="Analyze a manuscript")
-    check_parser.add_argument("--paper", required=True, type=Path)
-    check_parser.add_argument("--template", type=Path)
-    check_parser.add_argument("--package", dest="package_id")
-
-    format_parser = subparsers.add_parser("format", help="Create a basic formatted .docx")
-    format_parser.add_argument("--paper", required=True, type=Path)
-    format_parser.add_argument("--output", required=True, type=Path)
-    format_parser.add_argument("--template", type=Path)
-    format_parser.add_argument("--package", dest="package_id")
-
-    check_format_parser = subparsers.add_parser(
-        "check-and-format",
-        help="Analyze a manuscript, create a formatted .docx, and re-check the result",
+def main():
+    parser = argparse.ArgumentParser(
+        prog="goodpaper",
+        description="学术论文格式检查与自动排版工具",
     )
-    check_format_parser.add_argument("--paper", required=True, type=Path)
-    check_format_parser.add_argument("--output", required=True, type=Path)
-    check_format_parser.add_argument("--template", type=Path)
-    check_format_parser.add_argument("--package", dest="package_id")
-
-    batch_parser = subparsers.add_parser(
-        "batch-check", help="Analyze all manuscripts in a folder and export reports"
+    parser.add_argument(
+        "command",
+        choices=["check", "format", "serve", "template"],
+        help="命令: check=检查格式, format=自动排版, serve=启动Web服务, template=模板管理",
     )
-    batch_parser.add_argument("--input-dir", required=True, type=Path)
-    batch_parser.add_argument("--output-dir", required=True, type=Path)
-    batch_parser.add_argument("--template", type=Path)
-    batch_parser.add_argument("--package", dest="package_id")
+    parser.add_argument("paper", nargs="?", help="论文文件路径 (.docx)")
+    parser.add_argument("-t", "--template", help="模板文件路径 (.docx)")
+    parser.add_argument("-p", "--package", help="内置模板包名称")
+    parser.add_argument("-o", "--output", help="输出文件路径")
+    parser.add_argument("--port", type=int, default=8787, help="服务端口 (默认: 8787)")
+    parser.add_argument("--host", default="127.0.0.1", help="服务主机 (默认: 127.0.0.1)")
 
-    return parser
-
-
-def main() -> None:
-    parser = build_parser()
     args = parser.parse_args()
 
     if args.command == "serve":
-        run_server(host=args.host, port=args.port)
-        return
+        # 启动 FastAPI 服务
+        import uvicorn
+        from goodpaper_mvp.fastapi_server import app
 
-    if args.command == "list-packages":
-        discovery = discover_template_packages()
-        payload = {
-            "packages": [package.to_dict() for package in discovery["packages"]],
-            "issues": [issue.to_dict() for issue in discovery["issues"]],
-        }
-        print(to_pretty_json(payload))
-        return
-
-    if args.command == "issue-code":
-        payload = issue_invite_code(
-            package_id=args.package_id,
-            days=args.days,
-            serial=args.serial,
+        print(f"🚀 启动 GoodPaper 服务...")
+        print(f"📍 http://{args.host}:{args.port}")
+        print(f"📖 API 文档: http://{args.host}:{args.port}/docs")
+        uvicorn.run(
+            "goodpaper_mvp.fastapi_server:app",
+            host=args.host,
+            port=args.port,
+            reload=True,
         )
-        print(to_pretty_json(payload))
-        return
 
-    if args.command == "activate":
-        payload = activate_invite_code(args.code)
-        print(to_pretty_json(payload))
-        return
+    elif args.command == "check":
+        if not args.paper:
+            print("❌ 请指定论文文件: goodpaper check <paper.docx>")
+            sys.exit(1)
 
-    if args.command == "license-status":
-        print(to_pretty_json(get_license_status().to_dict()))
-        return
+        from goodpaper_mvp.core_cli import check_paper_cli
 
-    if args.command == "check":
-        require_activation()
-        context = resolve_template_context(template_path=args.template, package_id=args.package_id)
-        payload = analyze_document(
-            context["template_path"],
-            args.paper,
-            context["semantic_styles"],
+        check_paper_cli(
+            paper_path=args.paper,
+            template_path=args.template,
+            template_package=args.package,
         )
-        payload["package"] = context["package"]
-        print(to_pretty_json(payload))
-        return
 
-    if args.command == "format":
-        require_activation()
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        context = resolve_template_context(template_path=args.template, package_id=args.package_id)
-        payload = format_document(
-            context["template_path"],
-            args.paper,
-            args.output,
-            context["semantic_styles"],
-        )
-        payload["package"] = context["package"]
-        print(to_pretty_json(payload))
-        return
+    elif args.command == "format":
+        if not args.paper:
+            print("❌ 请指定论文文件: goodpaper format <paper.docx>")
+            sys.exit(1)
 
-    if args.command == "check-and-format":
-        require_activation()
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        context = resolve_template_context(template_path=args.template, package_id=args.package_id)
-        before = analyze_document(
-            context["template_path"],
-            args.paper,
-            context["semantic_styles"],
-        )
-        formatted = format_document(
-            context["template_path"],
-            args.paper,
-            args.output,
-            context["semantic_styles"],
-        )
-        after = analyze_document(
-            context["template_path"],
-            args.output,
-            context["semantic_styles"],
-        )
-        payload = {
-            "before": before,
-            "formatted": formatted,
-            "after": after,
-            "package": context["package"],
-        }
-        print(to_pretty_json(payload))
-        return
+        from goodpaper_mvp.core_cli import format_paper_cli
 
-    if args.command == "batch-check":
-        require_activation()
-        args.output_dir.mkdir(parents=True, exist_ok=True)
-        context = resolve_template_context(template_path=args.template, package_id=args.package_id)
-        paper_paths = sorted(
-            [
-                path
-                for path in args.input_dir.iterdir()
-                if path.is_file() and path.suffix.lower() in {".docx", ".docm"}
-            ]
+        output_path = args.output or args.paper.replace(".docx", "_formatted.docx")
+        format_paper_cli(
+            paper_path=args.paper,
+            template_path=args.template,
+            template_package=args.package,
+            output_path=output_path,
         )
-        payload = collect_batch_report(
-            context["template_path"],
-            paper_paths,
-            context["semantic_styles"],
-        )
-        payload["package"] = context["package"]
-        files = write_batch_report_files(payload, args.output_dir)
-        print(to_pretty_json({"report": payload, "files": files}))
-        return
 
-    parser.error("Unsupported command.")
+    elif args.command == "template":
+        from goodpaper_mvp.core_cli import list_templates_cli
+
+        list_templates_cli()
 
 
 if __name__ == "__main__":

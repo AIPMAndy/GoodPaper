@@ -34,7 +34,7 @@ jobs:
     - name: Test CLI commands
       run: |
         python app.py --help
-        python app.py list-packages
+        python app.py template
     
     - name: Upload coverage
       uses: codecov/codecov-action@v3

@@ -49,6 +49,15 @@ python app.py format manuscript.docx -t my-university-template.docx -o formatted
 
 默认模板来自 \`template_packages/\`，**演示模板不等于你的学校/期刊的官方模板**。优先提供自己有权使用的 .docx 模板，并根据具体投稿要求检查。
 
+## GitHub Pages｜产品官网与自动发布
+
+- **公开产品页（首次部署后）：** https://aipmandy.github.io/GoodPaper/
+- **Pages 源码：** [docs/index.html](docs/index.html)。产品页是静态展示，**不能直接上传论文进行检查**；真正在本机处理 DOCX 的服务仍由 \`python app.py serve\` 启动。
+- **自动发布：** [Deploy GoodPaper Pages](.github/workflows/pages.yml) 在 \`main\` 分支的 \`docs/\` 或部署配置发生变更时发布，也支持 Actions 手动触发。
+- **首次启用：** 有仓库管理权限的维护者访问 [Settings → Pages](https://github.com/AIPMAndy/GoodPaper/settings/pages)，将 **Build and deployment → Source** 设为 **GitHub Actions**。这是 GitHub 必须完成的仓库级设置，**仅添加 workflow 不等于自动开通 Pages**。
+- **上线验收：** 在 [Actions](https://github.com/AIPMAndy/GoodPaper/actions/workflows/pages.yml) 确认最后一次工作流成功，打开网址检查实际页面、移动端布局、系统安装命令切换和微信复制。
+- 官网 [AI 酋长 Andy · metaver.vip](https://metaver.vip/) 和微信 **AIPMAndy** 均在产品页提供自愿联系入口，**不强制加微信才可使用免费开源工具**。
+
 ## 二、目前支持什么
 
 | 功能 | 当前状态 | 精确说明 |

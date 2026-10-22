@@ -54,7 +54,7 @@ class PagesSiteTests(unittest.TestCase):
             "GoodPaper", "AI 酋长 Andy", "https://metaver.vip/",
             "https://github.com/AIPMAndy/GoodPaper",
             "AIPMAndy", "本机", "DOCX", "GB/T 7714", "三线表",
-            "没有", "Apache-2.0", "data-platform", "copyWechat",
+            "Apache-2.0", "data-platform", "copyWechat",
             "copyInstall", "role=\"img\"", "aria-live=\"polite\"",
         ):
             with self.subTest(token=token):

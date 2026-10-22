@@ -29,7 +29,7 @@ def main():
     parser.add_argument("-p", "--package", help="内置模板包名称")
     parser.add_argument("-o", "--output", help="输出文件路径")
     parser.add_argument("--port", type=int, default=8787, help="服务端口 (默认: 8787)")
-    parser.add_argument("--host", default="127.0.0.1", help="服务主机 (默认: 127.0.0.1)")
+    parser.add_argument("--host", default="127.0.0.1", help="服务主机 (默认: 127.0.0.1，勿直接暴露到公网)")
 
     args = parser.parse_args()
 
@@ -57,12 +57,14 @@ def main():
         print(f"📄 正在检查: {paper_path.name}")
         print("-" * 50)
 
-        # 使用默认模板
-        from goodpaper_mvp.templates import get_default_template_package
-        template_pkg = get_default_template_package()
-        template_path = template_pkg.template_path if hasattr(template_pkg, 'template_path') else str(template_pkg)
-
-        result = analyze_document(Path(template_path), paper_path)
+        from goodpaper_mvp.templates import resolve_template_context
+        context = resolve_template_context(
+            template_path=Path(args.template) if args.template else None,
+            package_id=args.package,
+        )
+        result = analyze_document(
+            context['template_path'], paper_path, context['semantic_styles']
+        )
 
         # 显示结果
         issues = result.get("issues", [])
@@ -104,10 +106,14 @@ def main():
         print(f"📄 正在排版: {paper_path.name}")
         print("-" * 50)
 
-        from goodpaper_mvp.templates import get_default_template_package
-        template_ctx = get_default_template_package()
-
-        format_document(str(paper_path), str(output_path), template_ctx)
+        from goodpaper_mvp.templates import resolve_template_context
+        context = resolve_template_context(
+            template_path=Path(args.template) if args.template else None,
+            package_id=args.package,
+        )
+        format_document(
+            context['template_path'], paper_path, output_path, context['semantic_styles']
+        )
 
         print(f"✅ 排版完成: {output_path}")
 

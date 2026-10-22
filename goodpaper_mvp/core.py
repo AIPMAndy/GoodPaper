@@ -1324,7 +1324,12 @@ def merge_template_parts(template_path: Path, output_path: Path) -> None:
             template_entries["word/styles.xml"],
         )
 
-    if "word/numbering.xml" in template_entries:
+    # Never replace a manuscript's numbering.xml: existing w:numId and list
+    # references would silently point to unrelated template numbering definitions.
+    # Only provide template numbering when the manuscript has none at all.
+    # Full safe numbering-ID remapping remains a future enhancement.
+    if ("word/numbering.xml" in template_entries
+            and "word/numbering.xml" not in output_entries):
         output_entries["word/numbering.xml"] = template_entries["word/numbering.xml"]
         output_entries["[Content_Types].xml"] = ensure_numbering_override(
             output_entries["[Content_Types].xml"]
@@ -1357,7 +1362,11 @@ def format_document(
     semantic_style_ids: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     if input_path.suffix.lower() != ".docx":
-        raise ValueError("Formatting currently supports .docx manuscripts on Mac.")
+        raise ValueError("Formatting currently supports .docx manuscripts.")
+    if input_path.resolve() == output_path.resolve():
+        raise ValueError("Refusing to overwrite the original manuscript. Choose another output path.")
+    if template_path.resolve() == output_path.resolve():
+        raise ValueError("Refusing to overwrite the template. Choose another output path.")
 
     shutil.copy2(input_path, output_path)
     merge_template_parts(template_path, output_path)

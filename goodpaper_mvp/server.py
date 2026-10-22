@@ -4,6 +4,7 @@ import base64
 import cgi
 import json
 import tempfile
+import logging
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -13,13 +14,14 @@ from .core import analyze_document, format_document
 from .licensing import activate_invite_code, get_license_status, require_activation
 from .reports import build_batch_report_zip, collect_batch_report
 from .templates import discover_template_packages, get_default_template_package, list_template_packages, resolve_template_context
+from .upload_guard import validate_upload, MAX_REQUEST_BYTES, MAX_FILES
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 INDEX_HTML_PATH = PROJECT_ROOT / "goodpaper_mvp" / "static" / "index.html"
 
 
 class GoodPaperHandler(BaseHTTPRequestHandler):
-    server_version = "GoodPaper/0.1"
+    server_version = "GoodPaper/0.2"
 
     def do_GET(self) -> None:
         try:
@@ -44,6 +46,7 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         try:
+            self._validate_local_origin()
             parsed = urlparse(self.path)
             if parsed.path == "/api/activate":
                 self._handle_activate()
@@ -65,12 +68,30 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
             self._send_json_error(HTTPStatus.BAD_REQUEST, str(exc))
         except PermissionError as exc:
             self._send_json_error(HTTPStatus.FORBIDDEN, str(exc))
-        except Exception as exc:
-            self._send_json_error(HTTPStatus.INTERNAL_SERVER_ERROR, str(exc))
+        except Exception:
+            logging.exception("GoodPaper request failed")
+            self._send_json_error(HTTPStatus.INTERNAL_SERVER_ERROR, "Internal processing error; check local server logs.")
+
+    def _validate_local_origin(self) -> None:
+        # Browsers send Origin for POSTs. Reject cross-site attempts against
+        # the loopback server, but allow curl / local CLI clients without Origin.
+        origin = self.headers.get("Origin")
+        if not origin:
+            return
+        from urllib.parse import urlsplit
+        parsed = urlsplit(origin)
+        host = (parsed.hostname or "").lower()
+        server_port = int(self.server.server_address[1])
+        if (parsed.scheme not in {"http", "https"} or
+                host not in {"localhost", "127.0.0.1", "::1"} or
+                parsed.port != server_port or
+                parsed.username or parsed.password):
+            raise PermissionError("Cross-origin requests are not allowed. Open the local GoodPaper page.")
 
     def _serve_index(self) -> None:
         content = INDEX_HTML_PATH.read_bytes()
         self.send_response(HTTPStatus.OK)
+        self._safe_headers()
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(content)))
         self.end_headers()
@@ -118,8 +139,9 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
             )
             self.send_header(
                 "Content-Disposition",
-                f'attachment; filename="{Path(result["output_path"]).name}"',
+                'attachment; filename="goodpaper-formatted.docx"',
             )
+            self._safe_headers()
             self.send_header("X-GoodPaper-Change-Count", str(result["change_count"]))
             self.send_header("Content-Length", str(len(payload)))
             self.end_headers()
@@ -180,6 +202,7 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
             payload = build_batch_report_zip(report)
 
             self.send_response(HTTPStatus.OK)
+            self._safe_headers()
             self.send_header("Content-Type", "application/zip")
             self.send_header(
                 "Content-Disposition",
@@ -190,7 +213,9 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
             self.wfile.write(payload)
 
     def _handle_activate(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
+        length = self._checked_request_length()
+        if length > 8192:
+            raise ValueError("Activation request is too large.")
         raw = self.rfile.read(length).decode("utf-8")
         payload = json.loads(raw or "{}")
         code = (payload.get("code") or "").strip()
@@ -205,15 +230,31 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
             }
         )
 
+    def _checked_request_length(self) -> int:
+        length_text = self.headers.get("Content-Length")
+        if length_text is None or not length_text.isdecimal():
+            raise ValueError("A valid Content-Length header is required.")
+        length = int(length_text)
+        if length <= 0 or length > MAX_REQUEST_BYTES:
+            raise ValueError(f"Request body must be between 1 and {MAX_REQUEST_BYTES} bytes.")
+        return length
+
     def _parse_form_data(self) -> cgi.FieldStorage:
-        return cgi.FieldStorage(
+        length = self._checked_request_length()
+        content_type = self.headers.get("Content-Type", "")
+        if not content_type.lower().startswith("multipart/form-data;"):
+            raise ValueError("Expected multipart/form-data.")
+        # Length is bounded before invoking the multipart parser.
+        fields = cgi.FieldStorage(
             fp=self.rfile,
             headers=self.headers,
             environ={
                 "REQUEST_METHOD": "POST",
-                "CONTENT_TYPE": self.headers.get("Content-Type", ""),
+                "CONTENT_TYPE": content_type,
+                "CONTENT_LENGTH": str(length),
             },
         )
+        return fields
 
     def _resolve_upload(
         self,
@@ -228,9 +269,9 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
                 return None
             raise ValueError(f"Missing upload field '{field_name}'.")
 
-        safe_name = Path(field.filename).name
-        target_path = temp_root / safe_name
-        target_path.write_bytes(field.file.read())
+        safe_name = Path(field.filename.replace("\\", "/")).name
+        target_path = temp_root / f"{field_name}-{safe_name}"
+        validate_upload(field.file, target_path, kind="template" if field_name == "template" else "paper")
         return target_path
 
     def _resolve_uploads(
@@ -244,12 +285,14 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
         raw_fields = fields[field_name]
         field_items = raw_fields if isinstance(raw_fields, list) else [raw_fields]
         resolved: list[Path] = []
-        for field in field_items:
+        if len(field_items) > MAX_FILES:
+            raise ValueError(f"A maximum of {MAX_FILES} documents may be checked at once.")
+        for index, field in enumerate(field_items):
             if not getattr(field, "filename", ""):
                 continue
-            safe_name = Path(field.filename).name
-            target_path = temp_root / safe_name
-            target_path.write_bytes(field.file.read())
+            safe_name = Path(field.filename.replace("\\", "/")).name
+            target_path = temp_root / f"{field_name}-{index:02d}-{safe_name}"
+            validate_upload(field.file, target_path, kind="paper")
             resolved.append(target_path)
         return resolved
 
@@ -298,9 +341,16 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
             "default_package_id": default_package_id,
         }
 
+    def _safe_headers(self) -> None:
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
+
     def _send_json(self, payload: dict) -> None:
         data = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
         self.send_response(HTTPStatus.OK)
+        self._safe_headers()
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
@@ -309,6 +359,7 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
     def _send_json_error(self, status: HTTPStatus, message: str) -> None:
         data = json.dumps({"error": message}, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
+        self._safe_headers()
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
@@ -318,7 +369,9 @@ class GoodPaperHandler(BaseHTTPRequestHandler):
         return
 
 
-def run_server(host: str = "127.0.0.1", port: int = 8765) -> None:
+def run_server(host: str = "127.0.0.1", port: int = 8787) -> None:
+    if host not in {"127.0.0.1", "localhost", "::1"}:
+        raise ValueError("For manuscript privacy, GoodPaper only binds to loopback. Use a private authenticated proxy for remote access.")
     server = ThreadingHTTPServer((host, port), GoodPaperHandler)
     print(f"GoodPaper listening at http://{host}:{port}")
     server.serve_forever()

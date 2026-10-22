@@ -3,173 +3,82 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>GoodPaper</title>
+    <title>GoodPaper — 论文格式检查与基础自动排版｜AI 酋长 Andy</title>
+    <meta name="description" content="GoodPaper 开源论文格式检查与 Word 基础自动排版工具。按模板诊断段落样式，批量报告与安全的本地优先处理。作者 AI 酋长 Andy。">
+    <meta name="theme-color" content="#f5f5f7">
     <style>
-      :root {
-        --bg: #f3efe7;
-        --panel: rgba(255, 252, 247, 0.94);
-        --text: #1f1c17;
-        --muted: #6f655b;
-        --accent: #9f3e1e;
-        --accent-2: #1f6b61;
-        --accent-3: #3b4f92;
-        --border: rgba(31, 28, 23, 0.12);
-        --shadow: 0 24px 60px rgba(60, 40, 20, 0.12);
-      }
 
-      * {
-        box-sizing: border-box;
-      }
+:root{--bg:#f5f5f7;--panel:#fff;--ink:#17191e;--muted:#6e7683;--accent:#0066cc;--line:#e6e8ed;--radius:24px;--shadow:0 16px 52px rgba(24,36,66,.075)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:#0066cc;text-decoration:none}a:hover{text-decoration:underline}
+.shell{max-width:1180px;margin:0 auto;padding:22px 25px 90px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:9px 0 20px}
+.wordmark{color:#14171e;font-size:17px;font-weight:800;letter-spacing:-.045em}
+.wordmark-dot{display:inline-block;width:9px;height:9px;background:#0066cc;border-radius:100%;margin-right:9px;box-shadow:0 0 0 4px #dfeeff}
+.navlinks{display:flex;gap:21px;align-items:center;flex-wrap:wrap}.navlinks a{font-size:13px;color:#596272;font-weight:620}.navlinks a.pill-link{border:1px solid #d4e1f5;background:#eaf3ff;color:#1354ae;padding:8px 14px;border-radius:99px}
+.hero{padding:64px 57px;display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:center;background:radial-gradient(circle at 76% 19%,#e7efff 0,transparent 40%),linear-gradient(145deg,#fff 45%,#f5f8ff);border:1px solid #e7ebf3;border-radius:36px;overflow:hidden}
+.kicker{display:inline-flex;align-items:center;font-size:11px;letter-spacing:.14em;font-weight:800;color:#3767ad;text-transform:uppercase}
+h1{font-size:clamp(42px,5.2vw,72px);letter-spacing:-.072em;font-weight:790;line-height:1.1;margin:18px 0;color:#0d1117}h1 .blue{color:#0066cc}
+.subhead{font-size:16px;line-height:1.86;color:#566374;max-width:580px;margin:0 0 24px}
+.hero-links{display:flex;flex-wrap:wrap;gap:10px}.hero-links a{padding:12px 18px;font-weight:700;font-size:13px;border-radius:99px}
+.hero-links .main-link{color:white;background:#0066cc}.hero-links .outline-link{border:1px solid #cfd9e8;color:#2c405d;background:white}
+.product-preview{border-radius:22px;background:#151d2c;color:#eaf1ff;min-height:350px;padding:23px;transform:rotate(3deg);box-shadow:0 30px 60px #12264a31;border:1px solid #ffffff22;position:relative}
+.preview-top{font-size:11px;color:#a2b9da;display:flex;gap:6px;align-items:center;letter-spacing:.07em}.preview-dots{display:inline-flex;gap:4px;margin-right:auto}.preview-dots i{width:7px;height:7px;border-radius:100%;background:#657794}
+.preview-paper{background:#fff;color:#17243a;border-radius:13px;margin:22px 6px 0;padding:26px;min-height:225px;box-shadow:0 15px 35px #0003}
+.preview-paper .bar{height:7px;border-radius:99px;background:#cad4e4;margin:12px 0}.preview-paper .bar.dark{height:10px;background:#2d415e;width:70%;margin:0 auto 22px}.preview-paper .bar.short{width:51%}.preview-paper .bar.mid{width:80%}
+.preview-paper .fix{display:flex;align-items:center;gap:10px;color:#117e63;font-size:11px;margin-top:22px;font-weight:740}.preview-paper .fix b{display:grid;place-items:center;background:#d8f6e9;border-radius:100%;width:22px;height:22px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+.stat{border:1px solid var(--line);border-radius:18px;padding:19px 22px;background:white}.stat b{display:block;font-size:22px;letter-spacing:-.055em}.stat span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.section-title{font-size:30px;font-weight:760;letter-spacing:-.05em;margin:58px 0 7px}.section-lead{font-size:14px;color:var(--muted);margin:0 0 22px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:17px}
+.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:var(--shadow)}
+.card-wide{grid-column:1/-1}h2{font-size:19px;letter-spacing:-.037em;margin:0 0 8px}h3{font-size:16px;margin:0}
+.card>p:first-of-type{margin:0 0 12px}
+label{display:block;font-size:13px;font-weight:650;margin:14px 0 6px;color:#475368}
+input[type=file],input[type=text],select{width:100%;font:inherit}
+input[type=file]{border:1px dashed #c9d6e5;border-radius:13px;background:#f8fafc;padding:13px;font-size:12px;color:#344762}
+input[type=text],select{border:1px solid #d7dee9;border-radius:12px;padding:12px 14px;min-height:45px;background:white;color:var(--ink)}
+button{font:inherit;cursor:pointer;border:0;border-radius:999px;background:#0066cc;color:white;padding:11px 19px;min-height:43px;font-size:13px;font-weight:730;transition:background .16s,transform .16s}
+button:hover{background:#0055b6;transform:translateY(-1px)}button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+button.secondary{background:#eaf2fe;color:#1857ad}button.secondary:hover{background:#dceaff}
+button.tertiary{background:#eff2f7;color:#3d4c63}button.tertiary:hover{background:#e2e8f0}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}
+.status{padding:13px 15px;border-radius:13px;background:#eff8f3;color:#215b43;font-size:13px;overflow-wrap:anywhere}.status.warn{background:#fff3ed;color:#97501d}
+.hint{font-size:12px;color:#758092;line-height:1.76}.privacy{padding:16px 19px;border:1px solid #dfe8f4;background:#f2f6fc;border-radius:17px;margin-top:18px;color:#51647b;font-size:13px}
+.feature-label{display:inline-block;background:#eff5ff;color:#326ab7;padding:4px 9px;font-size:10px;font-weight:740;letter-spacing:.04em;border-radius:7px;margin-bottom:9px}
+pre{margin:0;padding:22px;min-height:240px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:17px;background:#141e2d;color:#e7f0ff;line-height:1.68;font-size:12px;border:1px solid #27364d}
+.contact{margin-top:45px;border-radius:27px;background:#162134;color:#fff;padding:36px;display:flex;align-items:center;justify-content:space-between;gap:28px}
+.contact h2{font-size:27px;line-height:1.3;letter-spacing:-.048em}.contact p{margin:0;font-size:13px;color:#b4c3d9;max-width:620px}
+.contact-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}.contact-actions a,.contact-actions button{display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:740;white-space:nowrap;padding:11px 16px;border-radius:999px;min-height:43px}
+.contact-actions a{color:#0e4387;background:#e5f1ff}.contact-actions button{color:#fff;background:#ffffff20;border:1px solid #ffffff55}.contact-actions button:hover{background:#ffffff30}
+.footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;padding:28px 5px;color:#8790a0;font-size:12px}
+:focus-visible{outline:3px solid #ffb660;outline-offset:3px}
+.copy-note{font-size:13px;color:#dbe9ff;margin-top:10px}
+@media(max-width:900px){.hero{grid-template-columns:1fr;padding:42px}.product-preview{max-width:430px;width:100%;margin:auto;min-height:310px}.contact{flex-direction:column;align-items:flex-start}}
+@media(max-width:640px){.shell{padding:12px 15px 88px}.topbar{gap:12px}.navlinks{gap:10px}.navlinks a{font-size:11px}.hero{padding:29px 23px;border-radius:24px;gap:24px}h1{font-size:clamp(39px,10vw,52px)}.subhead{font-size:14px}.product-preview{min-height:280px;padding:17px;transform:none}.preview-paper{padding:19px;min-height:195px}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:1/-1}.stat{padding:13px 15px}.grid{grid-template-columns:1fr}.card{padding:21px;border-radius:19px}.section-title{font-size:27px;margin-top:43px}.contact{padding:25px;border-radius:22px}.contact h2{font-size:24px}.contact-actions{width:100%;display:grid;grid-template-columns:1fr}.contact-actions a,.contact-actions button{width:100%}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}button{transition:none}button:hover{transform:none}}
 
-      body {
-        margin: 0;
-        font-family: "Georgia", "Times New Roman", serif;
-        color: var(--text);
-        background:
-          radial-gradient(circle at top left, rgba(159, 62, 30, 0.18), transparent 28%),
-          radial-gradient(circle at 85% 10%, rgba(31, 107, 97, 0.16), transparent 24%),
-          linear-gradient(180deg, #f9f5ee 0%, #efe7db 100%);
-        min-height: 100vh;
-      }
-
-      .shell {
-        width: min(1160px, calc(100vw - 32px));
-        margin: 32px auto;
-        padding: 28px;
-        border: 1px solid var(--border);
-        border-radius: 28px;
-        background: var(--panel);
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(10px);
-      }
-
-      h1 {
-        margin: 0;
-        font-size: clamp(2rem, 4vw, 3.8rem);
-        line-height: 0.95;
-        letter-spacing: -0.04em;
-      }
-
-      .subhead {
-        margin: 14px 0 0;
-        max-width: 820px;
-        font-size: 1rem;
-        color: var(--muted);
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 18px;
-        margin-top: 28px;
-      }
-
-      .card {
-        border: 1px solid var(--border);
-        border-radius: 22px;
-        padding: 20px;
-        background: rgba(255, 255, 255, 0.7);
-      }
-
-      .card-wide {
-        grid-column: 1 / -1;
-      }
-
-      h2 {
-        margin: 0 0 12px;
-        font-size: 1.2rem;
-      }
-
-      label {
-        display: block;
-        margin: 14px 0 6px;
-        font-size: 0.95rem;
-      }
-
-      input[type="file"],
-      input[type="text"],
-      select {
-        width: 100%;
-      }
-
-      input[type="text"],
-      select {
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 12px;
-        background: rgba(255, 255, 255, 0.92);
-      }
-
-      button {
-        border: 0;
-        border-radius: 999px;
-        padding: 12px 18px;
-        font-size: 0.95rem;
-        cursor: pointer;
-        color: #fff;
-        background: linear-gradient(135deg, var(--accent), #ca6f42);
-      }
-
-      button.secondary {
-        background: linear-gradient(135deg, var(--accent-2), #2f8a7d);
-      }
-
-      button.tertiary {
-        background: linear-gradient(135deg, var(--accent-3), #6678b7);
-      }
-
-      button:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-      }
-
-      .row {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-top: 18px;
-      }
-
-      .status {
-        padding: 12px 14px;
-        border-radius: 16px;
-        background: rgba(31, 107, 97, 0.08);
-        color: var(--text);
-      }
-
-      .status.warn {
-        background: rgba(159, 62, 30, 0.08);
-      }
-
-      .hint {
-        color: var(--muted);
-        font-size: 0.88rem;
-      }
-
-      pre {
-        margin: 0;
-        padding: 18px;
-        min-height: 360px;
-        overflow: auto;
-        border-radius: 20px;
-        border: 1px solid var(--border);
-        background: #1d1a17;
-        color: #efe9df;
-        font-size: 0.85rem;
-        line-height: 1.5;
-      }
     </style>
   </head>
   <body>
     <main class="shell">
-      <h1>GoodPaper</h1>
-      <p class="subhead">
-        开源论文排版与检查工具。支持上传模板、单篇检查、基础自动排版，以及批量检查导出报告。
-      </p>
+      <nav class="topbar" aria-label="主要导航"><a class="wordmark" href="#top"><span class="wordmark-dot" aria-hidden="true"></span>GoodPaper</a><div class="navlinks"><a href="#workspace">开始使用</a><a href="https://github.com/AIPMAndy/GoodPaper" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="https://metaver.vip/" target="_blank" rel="noopener noreferrer">Andy 官网 ↗</a><a class="pill-link" href="#contact">联系作者</a></div></nav>
+      <header class="hero" id="top"><div><div class="kicker">GOODPAPER · OPEN SOURCE · DOCUMENT STUDIO</div>
+        <h1>论文归论文。<br><span class="blue">格式交给工具。</span></h1>
+        <p class="subhead">查段落样式、识别部分引用编号问题、按 Word 模板做基础自动排版。把重复劳动交给程序，把时间留给真正的研究。</p>
+        <div class="hero-links"><a class="main-link" href="#workspace">在本机开始使用 ↗</a><a class="outline-link" href="https://github.com/AIPMAndy/GoodPaper" target="_blank" rel="noopener noreferrer">查看开源代码 ↗</a></div>
+      </div><div class="product-preview" role="img" aria-label="示意图：GoodPaper 帮助识别排版样式不匹配并给出修复建议">
+        <div class="preview-top"><span class="preview-dots"><i></i><i></i><i></i></span>GOODPAPER / PREVIEW</div><div class="preview-paper"><div class="bar dark"></div><div class="bar"></div><div class="bar mid"></div><div class="bar"></div><div class="bar short"></div><div class="fix"><b>✓</b><span>段落样式检查 · 示例界面</span></div></div>
+      </div></header>
+      <div class="stats"><div class="stat"><b>01 / 检查</b><span>匹配模板段落样式</span></div><div class="stat"><b>02 / 排版</b><span>输出新的 DOCX 文件</span></div><div class="stat"><b>03 / 报告</b><span>批量导出诊断结果</span></div></div>
+      <div class="privacy">🔒 <strong>本机优先</strong>：默认服务仅监听 127.0.0.1，论文由本机处理。仅支持 DOCX，请先备份原件；表格结构、公式、交叉引用和全文引文规范仍需人工检查。公开部署必须另行配置认证与安全隔离。</div>
+      <h2 class="section-title" id="workspace">开始处理论文</h2>
+      <p class="section-lead">先选择模板，再上传文档。格式检查优先，自动修改后请逐页复核。</p>
 
       <section class="grid">
         <div class="card">
-          <h2>运行状态</h2>
+          <span class="feature-label">LOCAL ENGINE</span><h2>运行状态</h2>
           <div id="license-status" class="status warn">正在读取运行状态...</div>
           <label for="activation-code">可选激活码（私有部署用）</label>
           <input id="activation-code" type="text" placeholder="开源模式默认可直接使用；只有私有部署才需要邀请码">
@@ -180,7 +89,7 @@
         </div>
 
         <div class="card">
-          <h2>模板包</h2>
+          <span class="feature-label">TEMPLATE PROFILES</span><h2>Word 模板</h2>
           <label for="package-select">选择模板包</label>
           <select id="package-select"></select>
           <div id="package-meta" class="hint" style="margin-top:12px;">等待加载模板包...</div>
@@ -189,22 +98,22 @@
 
       <section class="grid">
         <div class="card">
-          <h2>检查论文</h2>
+          <span class="feature-label">STEP 01</span><h2>检查论文</h2>
           <p class="hint">模板文件可留空，默认使用上面选择的模板包。</p>
           <label for="check-template">覆盖模板文件</label>
-          <input id="check-template" type="file" accept=".docx,.docm">
+          <input id="check-template" type="file" accept=".docx">
           <label for="check-paper">论文文件</label>
-          <input id="check-paper" type="file" accept=".docx,.docm">
+          <input id="check-paper" type="file" accept=".docx">
           <div class="row">
             <button id="check-btn" type="button">开始检查</button>
           </div>
         </div>
 
         <div class="card">
-          <h2>基础自动排版</h2>
-          <p class="hint">当前格式化仅支持输入 <code>.docx</code>，输出新的 <code>.docx</code>。</p>
+          <span class="feature-label">STEP 02</span><h2>基础自动排版</h2>
+          <p class="hint">只处理 .docx，始终输出新文件；编号列表、图表、公式及引用可能存在边界情况，必须备份原稿并逐页复核。</p>
           <label for="format-template">覆盖模板文件</label>
-          <input id="format-template" type="file" accept=".docx,.docm">
+          <input id="format-template" type="file" accept=".docx">
           <label for="format-paper">论文文件</label>
           <input id="format-paper" type="file" accept=".docx">
           <div class="row">
@@ -214,27 +123,47 @@
         </div>
 
         <div class="card">
-          <h2>批量检查</h2>
-          <p class="hint">支持多选论文，下载 <code>summary.json</code>、<code>documents.csv</code>、<code>issues.csv</code> 的压缩包。</p>
+          <span class="feature-label">STEP 03</span><h2>批量检查</h2>
+          <p class="hint">一次最多 10 份 DOCX，单个文件上限 20 MiB；报告 ZIP 内含 summary.json、documents.csv、issues.csv。</p>
           <label for="batch-template">覆盖模板文件</label>
-          <input id="batch-template" type="file" accept=".docx,.docm">
+          <input id="batch-template" type="file" accept=".docx">
           <label for="batch-papers">论文文件</label>
-          <input id="batch-papers" type="file" accept=".docx,.docm" multiple>
+          <input id="batch-papers" type="file" accept=".docx" multiple>
           <div class="row">
             <button class="tertiary" id="batch-btn" type="button">下载批量报告</button>
           </div>
         </div>
       </section>
 
-      <section class="grid">
+      <section class="grid" id="report-section">
         <div class="card card-wide">
-          <h2>结果</h2>
-          <pre id="result">等待操作...</pre>
+          <span class="feature-label">DIAGNOSTIC REPORT</span><h2>检查结果与修复提示</h2>
+          <pre id="result" role="status" aria-live="polite">选择文件并启动检查后，报告会显示在这里。</pre>
         </div>
       </section>
+      <section class="contact" id="contact"><div><span class="kicker" style="color:#9dbefe">MADE BY AI CHIEF ANDY</span>
+        <h2>GoodPaper 由 AI 酋长 Andy 开源维护。</h2><p>发现错误欢迎提 GitHub Issue。需要个性化 AI 工具落地、职场效率或产品咨询，可自愿访问官网并联系；项目本身可免费使用，不强制添加微信。</p>
+        <p id="copy-feedback" class="copy-note" role="status" aria-live="polite">微信：AIPMAndy</p></div><div class="contact-actions">
+        <a href="https://metaver.vip/" target="_blank" rel="noopener noreferrer">个人官网 ↗</a><button id="copy-wechat" type="button">复制微信 AIPMAndy</button>
+      </div></section>
+      <footer class="footer"><span>GoodPaper · 开源研究工具 · Apache-2.0 License</span><span><a href="https://github.com/AIPMAndy/GoodPaper" target="_blank" rel="noopener noreferrer">GitHub</a> · <a href="https://metaver.vip/" target="_blank" rel="noopener noreferrer">metaver.vip</a> · 微信 AIPMAndy</span></footer>
     </main>
 
     <script>
+      document.getElementById("copy-wechat").addEventListener("click", async () => {
+        let copied = false;
+        try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText("AIPMAndy"); copied = true; } } catch (_) {}
+        if (!copied) {
+          const field = document.createElement("textarea");
+          field.value = "AIPMAndy"; field.style.cssText = "position:fixed;left:-10000px;top:0";
+          document.body.appendChild(field); field.select();
+          try { copied = document.execCommand("copy"); } catch (_) {}
+          field.remove();
+        }
+        document.getElementById("copy-feedback").textContent = copied
+          ? "已复制微信 AIPMAndy，打开微信搜索并注明 GoodPaper。"
+          : "复制权限不可用，请手动复制：AIPMAndy";
+      });
       const result = document.getElementById("result");
       const packageSelect = document.getElementById("package-select");
       const packageMeta = document.getElementById("package-meta");

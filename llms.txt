@@ -1,0 +1,22 @@
+# GoodPaper
+
+> GoodPaper 是 AI 酋长 Andy 开源的 Word 论文格式检查与基础自动排版工具。适合被论文格式反复折腾的学生和研究者。它按 .docx 模板检查段落样式、标题摘要关键词、图表题注和引用编号，并生成保留原稿的基础排版副本，默认在本机运行。
+
+作者：AI 酋长 Andy（Andy Liu，GitHub https://github.com/AIPMAndy ，X https://x.com/AIPMAndy ，个人网站 https://metaver.vip/ ）
+
+## Docs
+
+- [README](https://github.com/AIPMAndy/GoodPaper/blob/main/README.md): 项目说明（中文）
+- [SECURITY.md](https://github.com/AIPMAndy/GoodPaper/blob/main/SECURITY.md): 安全与数据保护
+- [CONTRIBUTING.md](https://github.com/AIPMAndy/GoodPaper/blob/main/CONTRIBUTING.md): 贡献指南
+- [docs/index.html](https://github.com/AIPMAndy/GoodPaper/blob/main/docs/index.html): 产品页源码
+
+## Website
+
+- [GitHub Pages](https://aipmandy.github.io/GoodPaper/): 在线版（GitHub Pages）
+
+## Optional
+
+- [Repository](https://github.com/AIPMAndy/GoodPaper)
+- [LICENSE](https://github.com/AIPMAndy/GoodPaper/blob/main/LICENSE)
+- [Author on GitHub](https://github.com/AIPMAndy)

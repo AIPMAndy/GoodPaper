@@ -13,6 +13,10 @@
 
 </div>
 
+> **TL;DR｜一句话**：GoodPaper 是 AI 酋长 Andy 开源的 Word 论文格式检查与基础自动排版工具。适合被论文格式反复折腾的学生和研究者。它按 .docx 模板检查段落样式、标题摘要关键词、图表题注和引用编号，并生成保留原稿的基础排版副本，默认在本机运行。
+>
+> 作者：AI 酋长 Andy（[GitHub @AIPMAndy](https://github.com/AIPMAndy) · [X @AIPMAndy](https://x.com/AIPMAndy) · [metaver.vip](https://metaver.vip/)）
+
 ---
 
 写论文最离谱的一件事，就是把大量时间花在格式上。字体、字号、行距、页边距、三线表，一个个调完还要重新检查。GoodPaper 希望把可重复的机械劳动交给工具，把有限的时间留给论文内容和真正的研究。
@@ -142,6 +146,24 @@ GoodPaper 保持免费开源。AI 产品、效率工具落地和职业发展相�
 **License：[Apache License 2.0](LICENSE)**。项目与 Word、WPS 或特定学校/期刊没有官方认证或背书关系。
 
 ---
+
+## 常见问题 FAQ
+
+### GoodPaper 能做什么？
+
+对 .docx 论文做模板样式、标题/摘要/关键词、图表题注和文内引用编号的检查，给出修复建议，并另存一份基础排版副本；支持一次最多 10 个文件的批量检查。
+
+### 能保证论文符合学校或期刊要求吗？
+
+不能。现阶段是 MVP，演示模板不等于官方模板；输出新文件后请在 Word/WPS 中逐页比对。
+
+### 论文会被上传吗？
+
+不会因为启动服务而自动上传：内置 Web 服务默认只监听本机。GitHub Pages 产品页只是静态介绍，不能上传论文。
+
+### 怎么运行？
+
+需要 Python 3.10–3.12：`pip install -r requirements.txt` 后运行 `python app.py serve`，浏览器打开 http://127.0.0.1:8787；也可以用 `python app.py check manuscript.docx` 命令行检查。
 
 <!-- andy-author-card:start -->
 ## 作者 / About the author
